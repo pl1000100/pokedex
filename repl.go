@@ -13,16 +13,33 @@ type cliCommand struct {
 	callback    func() error
 }
 
+type locationAreaResponse struct {
+	Count    uint
+	Next     *string
+	Previous *string
+	Results  []struct {
+		Name string
+		Url  string
+	}
+}
+
+type Config struct {
+	Next     *string
+	Previous *string
+}
+
 func startRepl() {
+	first_locations := "https://pokeapi.co/api/v2/location-area"
+	config := Config{Next: &first_locations}
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
-		fmt.Print("Pokedex >")
+		fmt.Print("Pokedex > ")
 		scanner.Scan()
 		clean_text := cleanInput(scanner.Text())
 		if len(clean_text) == 0 {
 			continue
 		}
-		command, exists := getCommands()[clean_text[0]]
+		command, exists := getCommands(&config)[clean_text[0]]
 		if exists {
 			err := command.callback()
 			if err != nil {
@@ -40,22 +57,22 @@ func cleanInput(text string) []string {
 	return words
 }
 
-func getCommands() map[string]cliCommand {
+func getCommands(config *Config) map[string]cliCommand {
 	return map[string]cliCommand{
 		"exit": {
 			name:        "exit",
 			description: "Exit the Pokedex",
-			callback:    commandExit,
+			callback:    func() error { return commandExit() },
 		},
 		"help": {
 			name:        "help",
 			description: "Displays a help message",
-			callback:    commandHelp,
+			callback:    func() error { return commandHelp(config) },
 		},
 		"map": {
 			name:        "map",
 			description: "Displays names of 20 location areas in the Pokemon world",
-			callback:    commandMap,
+			callback:    func() error { return commandMap(config) },
 		},
 	}
 

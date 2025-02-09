@@ -7,18 +7,8 @@ import (
 	"net/http"
 )
 
-type locationAreaResponse struct {
-	Count    uint
-	Next     string
-	Previous string
-	Results  []struct {
-		Name string
-		Url  string
-	}
-}
-
-func commandMap() error {
-	res, err := http.Get("https://pokeapi.co/api/v2/location-area")
+func commandMap(config *Config) error {
+	res, err := http.Get(*config.Next)
 	if err != nil {
 		return err
 	}
@@ -34,5 +24,7 @@ func commandMap() error {
 	for _, result := range locationArea.Results {
 		fmt.Println(result.Name)
 	}
+	config.Next = locationArea.Next
+	config.Previous = locationArea.Previous
 	return nil
 }
