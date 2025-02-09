@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/pl1000100/pokedex/internal/pokecache"
 )
 
 type cliCommand struct {
@@ -24,13 +27,17 @@ type locationAreaResponse struct {
 }
 
 type Config struct {
-	Next     *string
-	Previous *string
+	next     *string
+	previous *string
+	cache    *(pokecache.Cache)
 }
 
 func startRepl() {
+	const interval = 5 * time.Second
 	first_locations := "https://pokeapi.co/api/v2/location-area"
-	config := Config{Next: &first_locations}
+	cache := pokecache.NewCache(interval)
+	config := Config{next: &first_locations,
+		cache: cache}
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
@@ -62,7 +69,7 @@ func getCommands(config *Config) map[string]cliCommand {
 		"exit": {
 			name:        "exit",
 			description: "Exit the Pokedex",
-			callback:    func() error { return commandExit() },
+			callback:    func() error { return commandExit(config) },
 		},
 		"help": {
 			name:        "help",
