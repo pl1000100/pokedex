@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pl1000100/pokedex/internal/pokeapi"
 	"github.com/pl1000100/pokedex/internal/pokecache"
 )
 
@@ -16,28 +17,13 @@ type cliCommand struct {
 	callback    func() error
 }
 
-type locationAreaResponse struct {
-	Count    uint
-	Next     *string
-	Previous *string
-	Results  []struct {
-		Name string
-		Url  string
-	}
-}
-
-type Config struct {
-	next     *string
-	previous *string
-	cache    *(pokecache.Cache)
-}
-
 func startRepl() {
 	const interval = 5 * time.Second
-	first_locations := "https://pokeapi.co/api/v2/location-area"
-	cache := pokecache.NewCache(interval)
-	config := Config{next: &first_locations,
-		cache: cache}
+
+	client := pokeapi.ApiClient{
+		Cache: pokecache.NewCache(interval),
+	}
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
@@ -46,7 +32,7 @@ func startRepl() {
 		if len(clean_text) == 0 {
 			continue
 		}
-		command, exists := getCommands(&config)[clean_text[0]]
+		command, exists := getCommands(&client)[clean_text[0]]
 		if exists {
 			err := command.callback()
 			if err != nil {
@@ -64,27 +50,32 @@ func cleanInput(text string) []string {
 	return words
 }
 
-func getCommands(config *Config) map[string]cliCommand {
+func getCommands(client *pokeapi.ApiClient) map[string]cliCommand {
 	return map[string]cliCommand{
 		"exit": {
 			name:        "exit",
 			description: "Exit the Pokedex",
-			callback:    func() error { return commandExit(config) },
+			callback:    commandExit,
 		},
 		"help": {
 			name:        "help",
 			description: "Displays a help message",
-			callback:    func() error { return commandHelp(config) },
+			callback:    func() error { return commandHelp(client) },
 		},
 		"map": {
 			name:        "map",
 			description: "Displays names of next 20 location areas in the Pokemon world",
-			callback:    func() error { return commandMap(config) },
+			callback:    func() error { return commandMap(client) },
 		},
 		"mapb": {
 			name:        "mapb",
 			description: "Displays names of previous 20 location areas in the Pokemon world",
-			callback:    func() error { return commandMapb(config) },
+			callback:    func() error { return commandMapb(client) },
+		},
+		"explore": {
+			name:        "explore",
+			description: "Lists all Pokemons in given location area",
+			callback:    func() error { return commandExplore(client) },
 		},
 	}
 

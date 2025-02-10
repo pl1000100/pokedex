@@ -1,66 +1,16 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
+	"github.com/pl1000100/pokedex/internal/pokeapi"
 )
 
-func commandMap(config *Config) error {
-	body, ok := config.cache.Get(*config.next)
-	if !ok {
-		res, err := http.Get(*config.next)
-		if err != nil {
-			return err
-		}
-		body, err = io.ReadAll(res.Body)
-		res.Body.Close()
-		if err != nil {
-			return err
-		}
-		config.cache.Add(*config.next, body)
-		fmt.Println("****************************************** Not from cache")
-	} else {
-		fmt.Println("****************************************** From cache")
-	}
-	var locationArea locationAreaResponse
-	if err := json.Unmarshal(body, &locationArea); err != nil {
-		return err
-	}
-	for _, result := range locationArea.Results {
-		fmt.Println(result.Name)
-	}
-	config.next = locationArea.Next
-	config.previous = locationArea.Previous
+// TODO: move GET call to single file, handling cache and not in this two functions
+func commandMap(client *pokeapi.ApiClient) error {
+	pokeapi.List_location_area(client.Next, client)
 	return nil
 }
 
-func commandMapb(config *Config) error {
-	body, ok := config.cache.Get(*config.previous)
-	if !ok {
-		res, err := http.Get(*config.previous)
-		if err != nil {
-			return err
-		}
-		body, err = io.ReadAll(res.Body)
-		res.Body.Close()
-		if err != nil {
-			return err
-		}
-		config.cache.Add(*config.previous, body)
-		fmt.Println("****************************************** Not from cache")
-	} else {
-		fmt.Println("****************************************** From cache")
-	}
-	var locationArea locationAreaResponse
-	if err := json.Unmarshal(body, &locationArea); err != nil {
-		return err
-	}
-	for _, result := range locationArea.Results {
-		fmt.Println(result.Name)
-	}
-	config.next = locationArea.Next
-	config.previous = locationArea.Previous
+func commandMapb(client *pokeapi.ApiClient) error {
+	pokeapi.List_location_area(client.Previous, client)
 	return nil
 }
