@@ -1,16 +1,32 @@
 package main
 
 import (
-	"github.com/pl1000100/pokedex/internal/pokeapi"
+	"fmt"
 )
 
 // TODO: move GET call to single file, handling cache and not in this two functions
-func commandMap(client *pokeapi.ApiClient) error {
-	pokeapi.List_location_area(client.Next, client)
+func commandMap(cfg *config) error {
+	data, err := cfg.pokeapiClient.ListLocationArea(cfg.nextLocationsURL)
+	if err != nil {
+		return err
+	}
+	for _, result := range data.Results {
+		fmt.Println(result.Name)
+	}
+	cfg.nextLocationsURL = data.Next
+	cfg.prevLocationsURL = data.Previous
 	return nil
 }
 
-func commandMapb(client *pokeapi.ApiClient) error {
-	pokeapi.List_location_area(client.Previous, client)
+func commandMapb(cfg *config) error {
+	data, err := cfg.pokeapiClient.ListLocationArea(cfg.prevLocationsURL)
+	if err != nil {
+		return err
+	}
+	for _, result := range data.Results {
+		fmt.Println(result.Name)
+	}
+	cfg.nextLocationsURL = data.Next
+	cfg.prevLocationsURL = data.Previous
 	return nil
 }

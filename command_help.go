@@ -2,15 +2,13 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/pl1000100/pokedex/internal/pokeapi"
 )
 
-func commandHelp(client *pokeapi.ApiClient) error {
+func commandHelp(cfg *config) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println("")
-	for _, c := range getCommands(client) {
+	for _, c := range getCommands(cfg) {
 		fmt.Printf("%s: %s\n", c.name, c.description)
 	}
 	return nil

@@ -2,47 +2,35 @@ package pokeapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
 
-func List_location_area(url string, client *ApiClient) error {
-	if url == "" {
-		url = ApiAddress + "/location-area"
+func (client *ApiClient) ListLocationArea(url *string) (locationAreas, error) {
+	useUrl := ApiAddress + "/location-area"
+	if url != nil {
+		useUrl = *url
 	}
-	if data, ok := client.Cache.Get(url); ok {
-		var locationArea locationAreaResponse
+	if data, ok := client.cache.Get(useUrl); ok {
+		var locationArea locationAreas
 		if err := json.Unmarshal(data, &locationArea); err != nil {
-			return err
+			return locationAreas{}, err
 		}
-		for _, result := range locationArea.Results {
-			fmt.Println(result.Name)
-		}
-		client.Next = locationArea.Next
-		client.Previous = locationArea.Previous
-		fmt.Println("****************************************** From cache")
-		return nil
+		return locationArea, nil
 	}
-	res, err := http.Get(url)
+	res, err := http.Get(useUrl)
 	if err != nil {
-		return err
+		return locationAreas{}, err
 	}
 	body, err := io.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
-		return err
+		return locationAreas{}, err
 	}
-	client.Cache.Add(url, body)
-	var locationArea locationAreaResponse
+	client.cache.Add(useUrl, body)
+	var locationArea locationAreas
 	if err := json.Unmarshal(body, &locationArea); err != nil {
-		return err
+		return locationAreas{}, err
 	}
-	for _, result := range locationArea.Results {
-		fmt.Println(result.Name)
-	}
-	client.Next = locationArea.Next
-	client.Previous = locationArea.Previous
-	fmt.Println("****************************************** Not from cache")
-	return nil
+	return locationArea, nil
 }
