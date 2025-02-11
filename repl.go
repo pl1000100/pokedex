@@ -91,11 +91,11 @@ func getCommands(cfg *config, args *[]string) map[string]cliCommand {
 			description: "Displays stats of a given Pokemon",
 			callback:    func() error { return commandInspect(cfg, args) },
 		},
-		// "pokedex": {
-		// 	name:        "pokedex",
-		// 	description: "Displays caught Pokemons",
-		// 	callback:    func() error { return commandPokedex(cfg) },
-		// },
+		"pokedex": {
+			name:        "pokedex",
+			description: "Displays caught Pokemons",
+			callback:    func() error { return commandPokedex(cfg) },
+		},
 	}
 
 }
